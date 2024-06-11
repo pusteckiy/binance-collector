@@ -1,0 +1,16 @@
+binance:
+  ws_url: "wss://stream.binance.com:9443/ws"
+  rest_url: "https://api.binance.com/api/v3/depth"
+  symbols:
+    - "btcusdt"
+    - "ethusdt"
+    - "solusdt"
+
+telegram:
+  bot_token: "TOKEN" # токен з botfather
+  chat_id: "CHAT_ID" # чат для повідомлень
+
+monitoring:
+  period: 300 # в секундах період моніторингу
+  deviation: 0.1 # відхилення в 10% від середнього об'єму
+  distance: 0.02 # відстань +-2% від актуальної ціни
