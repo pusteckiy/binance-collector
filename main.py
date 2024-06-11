@@ -30,7 +30,7 @@ def connect_to_stream(pair: str):
     global last_update_id
     global event_buffer
 
-    url = f"wss://stream.binance.com:9443/ws/{pair.lower()}@depth@1000ms"
+    url = f"{config['binance']['ws_url']}/{pair.lower()}@depth@{config['monitoring']['speed']}ms"
 
     def on_message(ws, message):
         message_json = json.loads(message)
