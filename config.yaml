@@ -7,8 +7,8 @@ binance:
     - "solusdt"
 
 telegram:
-  bot_token: "7385294742:AAHnJz_r6wsIRTa6DahEWH58NqrS5lGJpb4" # токен з botfather
-  chat_id: "-4278033358" # чат для повідомлень
+  bot_token: "TOKEN" # токен з botfather
+  chat_id: "CHAT" # чат для повідомлень
 
 monitoring:
   period: 300 # в секундах період моніторингу
