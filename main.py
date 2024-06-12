@@ -10,11 +10,12 @@ from database import (
     connect_db,
     is_records_older_than_n_seconds,
     save_to_database,
-    get_average_volume,
+    get_average_volume_for_last_n_seconds,
 )
 from utils import (
     send_telegram_message,
     calculate_prices_and_volumes,
+    generate_message,
 )
 
 order_book = {"bids": {}, "asks": {}}
@@ -44,26 +45,21 @@ def connect_to_stream(pair: str):
         ) = calculate_prices_and_volumes(order_book)
 
         conn = connect_db()
-        save_to_database(conn, pair, mid_price, volume_above, volume_below)
-        avg_volume_above, avg_volume_below = get_average_volume(conn, pair)
         if is_records_older_than_n_seconds(conn, pair, config["monitoring"]["period"]):
+            avg_volume_above, avg_volume_below = get_average_volume_for_last_n_seconds(conn, pair, config["monitoring"]["period"])
             deviation_above = abs(volume_above - avg_volume_above) / avg_volume_above
             deviaton_below = abs(volume_below - avg_volume_below) / avg_volume_below
 
             if deviation_above > config["monitoring"]["deviation"]:
-                response_message = (
-                    f"🌐 Anomaly volume ABOVE ({deviation_above * 100:.0f}%) for {pair.upper()}\n├ Price: {mid_price:.2f}\n├ Price (+{config['monitoring']['distance'] * 100}%): {price_above:.2f}\n├ Price (-{config['monitoring']['distance'] * 100}%): {price_below:.2f}\n"
-                    f"├ Volume Above: {volume_above:.2f}\n├ Volume Below: {volume_below:.2f}\n├ Average Volume Above ({config['monitoring']['period']} sec.): {avg_volume_above:.2f}\n└ Average Volume Below ({config['monitoring']['period']} sec.): {avg_volume_below:.2f}"
-                )
+                response_message = generate_message("ABOVE", pair, deviaton_below, mid_price, price_above, price_below, volume_above, volume_below, avg_volume_above, avg_volume_below)
                 send_telegram_message(response_message)
+            
             elif deviaton_below > config["monitoring"]["deviation"]:
-                response_message = (
-                    f"🌐 Anomaly volume BELOW ({deviaton_below * 100:.0f}%) for {pair.upper()}\n├ Price: {mid_price:.2f}\n├ Price (+{config['monitoring']['distance'] * 100}%): {price_above:.2f}\n├ Price (-{config['monitoring']['distance'] * 100}%): {price_below:.2f}\n"
-                    f"├ Volume Above: {volume_above:.2f}\n├ Volume Below: {volume_below:.2f}\n├ Average Volume Above ({config['monitoring']['period']} sec.): {avg_volume_above:.2f}\n└ Average Volume Below ({config['monitoring']['period']} sec.): {avg_volume_below:.2f}"
-                )
+                response_message = generate_message("BELOW", pair, deviaton_below, mid_price, price_above, price_below, volume_above, volume_below, avg_volume_above, avg_volume_below)
                 send_telegram_message(response_message)
+        
+        save_to_database(conn, pair, mid_price, volume_above, volume_below)
         conn.close()
-
     def on_error(ws, error):
         print("ERROR:", error)
         sys.exit()

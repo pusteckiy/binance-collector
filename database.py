@@ -44,11 +44,11 @@ def save_to_database(conn, pair, price, volume_above, volume_below):
 
 
 @measure_execution_time
-def get_average_volume(conn, pair):
+def get_average_volume_for_last_n_seconds(conn, pair, n=300):
     cursor = conn.cursor()
     cursor.execute(
         "SELECT volume_above, volume_below FROM orderbook_volumes WHERE pair = ? AND timestamp >= ? ORDER BY timestamp DESC",
-        (pair, time.time() - config["monitoring"]["period"]),
+        (pair, time.time() - n),
     )
     rows = cursor.fetchall()
     avg_volume_above = mean([row[0] for row in rows])
@@ -58,10 +58,10 @@ def get_average_volume(conn, pair):
 
 
 @measure_execution_time
-def is_records_older_than_n_seconds(conn, pair, seconds=300):
+def is_records_older_than_n_seconds(conn, pair, n=300):
     cursor = conn.cursor()
     current_time = time.time()
-    cutoff_time = current_time - seconds
+    cutoff_time = current_time - n
 
     cursor.execute(
         """

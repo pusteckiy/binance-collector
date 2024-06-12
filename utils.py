@@ -24,12 +24,24 @@ def measure_execution_time(func):
     return wrapper
 
 
+def generate_message(deviation_type, pair, deviaton, mid_price, price_above, price_below, volume_above, volume_below, avg_volume_above, avg_volume_below):
+    return (
+        f"🌐 Anomaly volume {deviation_type} ({(deviaton * 100):.2f}%) for {pair.upper()}\n"
+        f"├ Price: {mid_price:.2f}\n"
+        f"├ Price (+{config['monitoring']['distance'] * 100}%): {price_above:.2f}\n"
+        f"├ Price (-{config['monitoring']['distance'] * 100}%): {price_below:.2f}\n"
+        f"├ Volume Above: {volume_above:.2f}\n├ Volume Below: {volume_below:.2f}\n"
+        f"├ Average Volume Above ({config['monitoring']['period']} sec.): {avg_volume_above:.2f}\n"
+        f"└ Average Volume Below ({config['monitoring']['period']} sec.): {avg_volume_below:.2f}"
+    )
+
+
 def send_telegram_message(message):
     global last_message_time
-    
+
     if time.time() - last_message_time < cooldown_period:
         return
-    
+
     last_message_time = time.time()
     payload = {"chat_id": config["telegram"]["chat_id"], "text": message}
     requests.post(
